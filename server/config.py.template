@@ -18,4 +18,4 @@ AUTH = {
 CLIENT_PATH = join(THIS, '..', 'client')
 
 # Enable this in development.
-DEBUG = True
+DEBUG = False
