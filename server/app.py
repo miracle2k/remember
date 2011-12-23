@@ -90,7 +90,7 @@ def create_thing():
 def update_thing(thing_id):
     with database() as things:
         thing = request.json
-        things.update({thing['id']: thing})
+        things.update({str(thing['id']): thing})
         return make_json_response({'message': 'OK'})
 
 @app.route('/things/<thing_id>',  methods=['DELETE'])
