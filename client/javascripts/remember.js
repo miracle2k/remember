@@ -12,7 +12,7 @@ $(function(){
     // Note: This is non-standard backbone.js.
     _filter_date: function(val) {
       // Support reading a stringified Moment object.
-      return val ? moment(val._d) || null : null;
+      return val ? moment(new Date(val._d)) || null : null;
     } ,
 
     _filter_text: function(val) { return val.trim(); }
