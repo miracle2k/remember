@@ -1,15 +1,21 @@
 from os.path import join, dirname
 THIS = dirname(__file__)
 
+# The database file to use
+DATABASE = join(THIS, 'test.db')
+
+# Authentication (HTTP-Basic). Remove this to not require
+# any authentication.
+AUTH = {
+    #'user': 'password'
+}
+
 # Directory which contains the client app. The full directory
 # will be served as a static-files area. While normally, you
 # would want to use a real webserver for static files,
 # performance is presumably not an issue here. However, you may
 # disable this setting and do a custom setup if you prefer.
 CLIENT_PATH = join(THIS, '..', 'client')
-
-# The database file to use
-DATABASE = join(THIS, 'test.db')
 
 # Enable this in development.
 DEBUG = True

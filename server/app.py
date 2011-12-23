@@ -2,7 +2,8 @@
 import json, uuid, shelve
 from contextlib import contextmanager
 from lockfile import FileLock
-from flask import Flask, request
+from flask import Flask, request, Request, Response
+from werkzeug.wrappers import Response as WSGIResponse
 from flask.helpers import make_response
 
 # Setup Flask app
@@ -27,6 +28,26 @@ def database():
             yield db
         finally:
             db.close()
+
+# Setup authentication; write this as a WSGI middleware
+# so we can protect the whole app, including the
+# SharedDataMiddleware.
+def requires_auth(wrapped_app):
+    def middleware(environ, start_response):
+        request = Request(environ)
+        auth = request.authorization
+        users = app.config.get('AUTH', None)
+        if not users is None and (
+               not auth or not users.get(auth.username, False)
+                    == auth.password):
+            return WSGIResponse(
+                'Could not verify your access level for that URL.\n'
+                'You have to login with proper credentials', 401,
+                {'WWW-Authenticate': 'Basic realm="Login Required"'})(
+                    environ, start_response)
+        return wrapped_app(environ, start_response)
+    return middleware
+app.wsgi_app = requires_auth(app.wsgi_app)
 
 
 def make_json_response(body, status_code=200):
