@@ -8,6 +8,8 @@ THIS = dirname(__file__)
 # disable this setting and do a custom setup if you prefer.
 CLIENT_PATH = join(THIS, '..', 'client')
 
+# The database file to use
+DATABASE = join(THIS, 'test.db')
 
 # Enable this in development.
 DEBUG = True
