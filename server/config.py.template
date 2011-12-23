@@ -1,0 +1,13 @@
+from os.path import join, dirname
+THIS = dirname(__file__)
+
+# Directory which contains the client app. The full directory
+# will be served as a static-files area. While normally, you
+# would want to use a real webserver for static files,
+# performance is presumably not an issue here. However, you may
+# disable this setting and do a custom setup if you prefer.
+CLIENT_PATH = join(THIS, '..', 'client')
+
+
+# Enable this in development.
+DEBUG = True

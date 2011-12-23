@@ -6,7 +6,7 @@
       <excludeFolder url="file://$MODULE_DIR$/client/.sass-cache" />
       <excludeFolder url="file://$MODULE_DIR$/client/stylesheets" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 2.7.1+ (/usr/bin/python2.7)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 2.7.1+ virtualenv at ~/.virtualenvs/remember" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

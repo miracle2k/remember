@@ -23,7 +23,7 @@ $(function(){
   window.ThingList = Backbone.Collection.extend(
   {
     model: Thing,
-    localStorage: new Store("things"),
+    url: '/things/',
 
     comparator: function(thing) {
       return -thing.get('date').valueOf();
