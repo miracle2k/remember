@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Remember</title>
+    <link href="/stylesheets/screen.css" media="all" rel="stylesheet" type="text/css"/>
+    <script language="javascript" src="javascripts/jquery.js" type="text/javascript"></script>
+    <script language="javascript" src="javascripts/jquery.elastic.js" type="text/javascript"></script>
+    <script language="javascript" src="javascripts/underscore.js" type="text/javascript"></script>
+    <script language="javascript" src="javascripts/showdown.js" type="text/javascript"></script>
+    <script language="javascript" src="javascripts/moment.js" type="text/javascript"></script>
+    <script language="javascript" src="javascripts/backbone.js" type="text/javascript"></script>
+    <script language="javascript" src="javascripts/backbone.localStorage.js" type="text/javascript"></script>
+    <script language="javascript" src="javascripts/remember.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id='remember'>
+      <div class='title'>
+        <h1>Remember</h1>
+      </div>
+
+      <div class='content'>
+        <div id='create-thing'>
+          <textarea id='new-thing' placeholder='What to remember?' rows='1'></textarea>
+          <span class='ui-tooltip-top'>Press Enter to create this thing, Shift+Enter for new line</span>
+        </div>
+
+        <div id='things'>
+          <ul></ul>
+        </div>
+      </div>
+    </div>
+
+    <div id='credits'>
+      Created by
+      <br />
+      <a href='http://elsdoerfer.name/'>Michael Elsdörfer</a>
+      <br />
+      Based on <em>todos.js</em> by
+      <br />
+      <a href='http://jgn.me/'>J&eacute;r&ocirc;me Gravel-Niquet</a>
+    </div>
+
+    <!-- Templates -->
+
+    <script type="text/template" id="group-template">
+      <div class="group">
+        <div class="group-text"><%= text %></div>
+        <ul></ul>
+      </div>
+    </script>
+
+    <script type="text/template" id="item-template">
+     <div class="thing">
+       <div class="display">
+         <div class="thing-text"></div>
+         <span class="thing-destroy"></span>
+       </div>
+       <div class="edit">
+         <textarea rows="1" class="thing-input" type="text"></textarea>
+       </div>
+     </div>
+    </script>
+
+  </body>
+</html>
