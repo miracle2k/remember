@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from os import path
 import json, uuid, shelve
 from contextlib import contextmanager
 from lockfile import FileLock
@@ -17,6 +18,11 @@ if app.config.get('CLIENT_PATH'):
     app.wsgi_app = SharedDataMiddleware(app.wsgi_app, {
         '/': config.CLIENT_PATH
     })
+
+@app.route('/', methods=['GET'])
+def index():
+    with open(path.join(app.config['CLIENT_PATH'], 'index.html'), 'r') as f:
+        return f.read()
 
 # Configure database
 @contextmanager
