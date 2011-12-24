@@ -11,7 +11,7 @@ In fact, it's a modified version of the backbone.js `Todo example app`__.
 Notable external libraries used:
 
    - backbone.js_  in a `modified <https://github.com/miracle2k/backbone>`_
-     version, which changes as used by Flow_.
+     version, with changes as used by Flow_.
    - jquery-elastic_ in a **modified** version, as used by Flow_.
    - moment.js_ for dates.
    - showdown.js_ for Markdown.
