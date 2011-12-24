@@ -19,10 +19,10 @@ if app.config.get('CLIENT_PATH'):
         '/': config.CLIENT_PATH
     })
 
-@app.route('/', methods=['GET'])
-def index():
-    with open(path.join(app.config['CLIENT_PATH'], 'index.html'), 'r') as f:
-        return f.read()
+    @app.route('/', methods=['GET'])
+    def index():
+        with open(path.join(app.config['CLIENT_PATH'], 'index.html'), 'r') as f:
+            return f.read()
 
 # Configure database
 @contextmanager
