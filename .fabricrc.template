@@ -1,0 +1,3 @@
+host = lowry.dpool.org:2211
+user = michael
+target_path = /srv/remember/code

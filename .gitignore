@@ -1,2 +1,4 @@
 /BRANCH_TODO
 /.idea/
+/.fabricrc
+*.pyc
