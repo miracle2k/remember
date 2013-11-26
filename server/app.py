@@ -63,11 +63,11 @@ def make_json_response(body, status_code=200):
     return resp
 
 
-@app.route('/things/', methods=['GET'])
+@app.route('/things', methods=['GET'])
 def get_things():
     with database() as things:
         data = things.values()
-        return make_json_response(data)
+        return make_json_response({'things': data})
 
 @app.route('/things/<thing_id>',  methods=['GET'])
 def get_thing(thing_id):
@@ -76,28 +76,30 @@ def get_thing(thing_id):
             thing = things[thing_id]
         except KeyError:
             return make_json_response({'message': 'invalid id'}, 400)
-        return make_json_response(thing)
+        return make_json_response({'thing': data})
 
-@app.route('/things/', methods=['POST'])
+@app.route('/things', methods=['POST'])
 def create_thing():
     with database() as things:
-        new_thing = request.json
+        new_thing = request.json['thing']
         new_thing['id'] = uuid.uuid4().hex
         things[new_thing['id']] = new_thing
-        return make_json_response(new_thing)
+        return make_json_response({'thing': new_thing})
 
 @app.route('/things/<thing_id>',  methods=['PUT'])
 def update_thing(thing_id):
     with database() as things:
-        thing = request.json
-        things.update({str(thing['id']): thing})
-        return make_json_response({'message': 'OK'})
+        thing_update = request.json['thing']  # Ember does not send ID
+        thing = things[str(thing_id)]
+        thing.update(thing_update)
+        things[str(thing_id)] = thing
+        return make_json_response({'thing': thing})
 
-@app.route('/things/<thing_id>',  methods=['DELETE'])
+@app.route('/things/<thing_id>', methods=['DELETE'])
 def delete_thing(thing_id):
     with database() as things:
         del things[str(thing_id)]
-        return make_json_response({'message': 'OK'})
+        return make_json_response({})
 
 
 if __name__ == '__main__':

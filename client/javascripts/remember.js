@@ -1,198 +1,158 @@
-$(function(){
+window.Remember = Ember.Application.create({LOG_TRANSITIONS: true});
+Remember.ApplicationAdapter = DS.RESTAdapter.extend();
 
-  // An thing to remember.
-  window.Thing = Backbone.Model.extend(
-  {
-    defaults: function() {
-      return {
-        date: moment()
+
+Remember.Router.map(function() {
+  this.resource('things', { path: '/' });
+});
+
+
+// Models
+
+Remember.Thing = DS.Model.extend({
+  text: DS.attr('string'),
+  date: DS.attr('momentDate', {defaultValue: function() { return momemt(); }}),
+});
+
+Remember.MomentDateTransform = DS.Transform.extend({
+  serialize: function(value) {
+    return value;
+  },
+  deserialize: function(value) {
+    return value ? moment(value._d) || null : null;
+  }
+});
+
+// Extensions
+
+Remember.EditThingView = Ember.TextArea.extend({
+  // If not set, Shift+Enter is needed for a new line.
+  // If set, Shift+Enter is needed for a submit.
+  multilineByDefault: false,
+
+  becomeFocused: function() {
+    this.$().focus();
+    this.$().elastic();
+  }.on('didInsertElement'),
+
+  handleKeyDown: function(e) {
+    if (e.keyCode == 13) {
+      // Xor?
+      if ((this.multilineByDefault && e.shiftKey) || (!this.multilineByDefault && !e.shiftKey)) {
+        this.sendAction('submit-edit');
+        
+        // Never allow that key to go to the textarea, or to the elastic handler.
+        // Note: This requires our handler to be attached BEFORE the elastic one.
+        // We might have to attach our stuff in the component init function as
+        // oposed to this declarative way if this doesn't work as expected.
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
       }
-    },
-
-    // Note: This is non-standard backbone.js.
-    _filter_date: function(val) {
-      // Support reading a stringified Moment object.
-      return val ? moment(new Date(val._d)) || null : null;
-    } ,
-
-    _filter_text: function(val) { return val.trim(); }
-  });
-
-
-  // A list of things.
-  window.ThingList = Backbone.Collection.extend(
-  {
-    model: Thing,
-    url: '/things/',
-
-    comparator: function(thing) {
-      return -thing.get('date').valueOf();
     }
-  });
+  }.on('keyDown')
+});
+Ember.Handlebars.helper('edit-thing', Remember.EditThingView);
 
 
-  // Renders an individual thing, as a list item.
-  window.ThingView = Backbone.View.extend({
-  
-    tagName: "li",
-    className: "thing",
+Ember.Handlebars.registerBoundHelper('formatDate', function(date, format) {
+  return moment(date).format(format || 'YYYY-MM-DD');
+});
 
-    showdown: new Showdown.converter(),
-  
-    template: _.template($('#item-template').html()),
-  
-    events: {
-      "dblclick .thing-text"    : "edit",
-      "click .thing-destroy"    : "clear",
-      "keypress .thing-input"   : "updateOnEnter"
-    },
-    
-    initialize: function() {
-      this.model.bind('change', this.render, this);
-      this.model.bind('destroy', this.remove, this);
-    },
-  
-    render: function() {
-      $(this.el).html(this.template(this.model.toJSON()));
-      var text = this.model.get('text');
-      var html = this.showdown.makeHtml(text);
-      this.$('.thing-text').html(html);
 
-      this.input = this.$('.thing-input');
-      this.input.bind('blur', _.bind(this.close, this)).val(text);
+// Routes and Views
 
-      return this;
+Remember.ThingsRoute = Ember.Route.extend({
+  model: function() {
+    return this.store.find('thing');
+  },
+});
+
+
+Remember.Showdown = new Showdown.converter();
+
+Remember.ThingsController = Ember.ArrayController.extend({
+  tooltipVisible: false,
+  newThing: "",
+
+  actions : {
+    createThing: function() {
+      var text = this.get('newThing').trim();
+      if (!text) { return; }
+      var thing = this.store.createRecord('thing', {text: text, date: moment()});
+      this.set('newThing', '');
+      thing.save();
     },
 
-    edit: function() {
-      $(this.el).addClass("editing");
-      this.$('textarea').elastic();
-      this.input.focus();
-    },
-    
-    close: function() {
-      var _this = this;
-      this.model.save({text: this.input.val()}, {
-        success: function(model) {
-          // Model validation may change the text
-          _this.$('textarea').text(model.get('text'));
-        }
-      });
-      $(this.el).removeClass("editing");
-    },
-  
-    updateOnEnter: function(e) {
-      //if (!event.shiftKey && e.keyCode == 13) this.close();
-    },
-    
-    clear: function() {
-      if (confirm('"'+this.model.get('text')+'" will be deleted?\n\nAre you sure?'))
-        this.model.destroy();
-    }
-  });
-
-
-  // Renders the main view with input field and list
-  window.AppView = Backbone.View.extend({
-  
-    el: $("#remember"),
-
-    groupTemplate: _.template($('#group-template').html()),
-
-    events: {
-      "keyup #new-thing"    : "showTooltip"
-    },
-  
-    initialize: function() {
-      this.things = this.options.things;
-      this.input = this.$("#new-thing");
-
-      // It's important we attach this as an event directly
-      // to the textarea (instead of using backbone's events
-      // hash, which delegates) because we want to stop certain
-      // key events from reaching elastic. Thus, this also needs
-      // to be attached BEFORE elastic's handler.
-      this.input.on("keydown", _.bind(this.createOnEnter, this));
-
-      // Make the textarea auto-expand; do this AFTER our own
-      // keydown event handler, so if we refuse to accept a key,
-      // elastic will not receive it either.
-      this.input.elastic();
-
-      this.things.bind('add', this.render, this);
-      this.things.bind('remove', this.render, this);
-      this.things.bind('reset', this.render, this);
-      this.things.fetch();
-    },
-
-    render: function() {
-      // For simplicity, for now, re-render the whole list
-      var list = this.$("#things > ul");
-      list.empty();
-      groupElements = [];
-
-      // Group items by date
-      var grouped = this.things.groupBy(function(thing) {
-        return thing.get('date').clone().hours(0).minutes(0).seconds(0); });
-
-      // Render each group...
-      var prevSeenYear = null;
-      _.each(grouped, function(things, groupKey)
-      {
-        // Determine the formatted date to show for this group
-        var groupDate = moment(groupKey);
-        var dateFormat = (groupDate.year() != prevSeenYear) ? 'YYYY-MM-DD' : 'MM-DD';
-        prevSeenYear = groupDate.year();
-
-        var groupView = $(this.groupTemplate({text: groupDate.format(dateFormat)}));
-        groupElements.push(groupView[0]);
-
-        // ... and each item.
-        _.each(things, function(thing) {
-          var view = new ThingView({model: thing});
-          $('> ul', groupView).append(view.render().el);
-        });
-      }, this);
-
-      // Show the new list
-      list.append(groupElements);
-    },
-  
-    createOnEnter: function(e) {
-      // Always remove trailing/leading whitespace
-      var text = this.input.val().trim();
-
-      //  Allow multiline with Shift
-      if (e.shiftKey || e.keyCode != 13) return;
-
-      // So we have unshifted ENTER. If there is a text, submit.
-      if (text) {
-        this.things.create({text: text});
-        this.input.val('');
-      }
-
-      // Never allow that key to go to the textarea, or to the
-      // elastic handler.
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      return false;
-    },
-  
-    showTooltip: function(e) {      
-      var tooltip = this.$(".ui-tooltip-top");
-      var val = this.input.val();
-      tooltip.fadeOut();
+    newThingKeyPress: function() {
+      // Hide the tooltip if visible
+      this.set('tooltipVisible', false); 
       if (this.tooltipTimeout) clearTimeout(this.tooltipTimeout);
-      if (val == '' || val == this.input.attr('placeholder')) return;
-      var show = function(){ tooltip.show().fadeIn(); };
+
+      // Do not show a tooltip if no content
+      if (this.get('newThing') == '') return;
+
+      // Show the tooltip with delay after the user inserted stuff
+      var self = this;
+      var show = function(){ self.set('tooltipVisible', true); };
       this.tooltipTimeout = _.delay(show, 1000);
     }
-  });
+  },
+  
+  groupedByDay : function() {
+    var grouped =_.groupBy(this.get('model').toArray(), function(thing) {
+      return thing.get('date').clone().hours(0).minutes(0).seconds(0); });    
+
+    // Supposedly Ember's #each can iterate objects, but I cannot get it to work.
+    // In any case, the order of an object is undefined, so this wouldn't be 
+    // right anyway.
+    var result = [];
+    _.each(grouped, function(things, groupKey) {
+      result.push({'date': groupKey, 'items': things.reverse()});
+    });
+    var sorted = _.sortBy(result, function(v) { return new Date(v.date); });  
+    return sorted.reverse();
+  }.property('@each.date')
+})
 
 
-  // Start the app
-  window.App = new AppView({
-    things: new ThingList
-  });
+Remember.ThingController = Ember.ObjectController.extend({
+  isEditing: false,
+  bufferedText: Ember.computed.oneWay('text'),
 
-});
+  actions : {
+    editTodo: function () {
+      this.set('isEditing', true);
+    },
+    doneEditing : function () {
+      var bufferedText = this.get('bufferedText').trim();
+      if (Ember.isEmpty(bufferedText)) {
+        Ember.run.debounce(this, this.send, 'removeTodo', 0); 
+      } else {
+        var thing = this.get('model');
+        thing.set('text', bufferedText);
+        thing.save();
+      }
+
+      // Re-set our newly edited title to persist it's trimmed version
+      this.set('bufferedText', bufferedText);
+      this.set('isEditing', false);
+    },
+    cancelEditing: function () {
+      this.set('bufferedText', this.get('text'));
+      this.set('isEditing', false);
+    },
+    removeThing: function() {      
+      var thing = this.get('model');
+      if (confirm('"'+thing.get('text')+'" will be deleted?\n\nAre you sure?')) {
+        thing.deleteRecord();
+        thing.save();
+      }
+    }
+  },
+
+  text_formatted : function() {
+    return Remember.Showdown.makeHtml(this.get('model').get('text')).htmlSafe();
+  }.property('model.text')
+})
+
