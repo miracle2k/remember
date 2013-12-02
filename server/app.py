@@ -1,15 +1,19 @@
 #!/usr/bin/env python
+import os
 from os import path
-import json, uuid, shelve
+import json, uuid
 from contextlib import contextmanager
-from lockfile import FileLock
 from flask import Flask, request, Request, Response
 from werkzeug.wrappers import Response as WSGIResponse
 from flask.helpers import make_response
 
 # Setup Flask app
 app = Flask(__name__)
-import config
+
+if os.environ.get('HEROKU'):
+    import heroku_config
+else:
+    import config
 app.config.from_object(config)
 
 # Serve static files directly to ease setup
@@ -25,15 +29,27 @@ if app.config.get('CLIENT_PATH'):
             return f.read()
 
 # Configure database
-@contextmanager
-def database():
-    dbfilename = app.config['DATABASE']
-    with FileLock(dbfilename):
-        db = shelve.open(dbfilename)
-        try:
-            yield db
-        finally:
-            db.close()
+if app.config['USE_SHOVE']:
+    import shove
+
+    db = shove.Shove(app.config['DATABASE'])
+
+    @contextmanager
+    def database():
+        yield db
+else:
+    import shelve
+    from lockfile import FileLock
+
+    @contextmanager
+    def database():
+        dbfilename = app.config['DATABASE']
+        with FileLock(dbfilename):
+            db = shelve.open(dbfilename)
+            try:
+                yield db
+            finally:
+                db.close()
 
 # Setup authentication; write this as a WSGI middleware
 # so we can protect the whole app, including the
