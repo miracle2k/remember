@@ -4,6 +4,10 @@ THIS = dirname(__file__)
 # The database file to use
 DATABASE = join(THIS, 'test.db')
 
+# For Heroku, use something like this:
+# USE_SHOVE = True
+# DATABASE = 'file://test
+
 # Authentication (HTTP-Basic). Remove this to not require
 # any authentication.
 AUTH = {

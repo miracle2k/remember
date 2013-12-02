@@ -31,3 +31,11 @@ Contents
 ./server
     The thinnest Python WSGI application possible, just a
     JSON-interface to a Python shelve.
+
+
+Running on Heroku
+===========
+
+::
+
+    $ heroku config:set HEROKU=1
