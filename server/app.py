@@ -11,7 +11,7 @@ from flask.helpers import make_response
 app = Flask(__name__)
 
 if os.environ.get('HEROKU'):
-    import heroku_config
+    import heroku_config as config
 else:
     import config
 app.config.from_object(config)
