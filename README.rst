@@ -36,6 +36,12 @@ Contents
 Running on Heroku
 ===========
 
+Put app in Heroku mode:
+
 ::
 
     $ heroku config:set HEROKU=1
+
+Support gem packages (sass compiler) on Heroku::
+
+    $ heroku plugins:install https://github.com/heroku/heroku-buildpacks
