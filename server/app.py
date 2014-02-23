@@ -3,6 +3,7 @@ import os
 from os import path
 import json, uuid
 from contextlib import contextmanager
+import confcollect
 from flask import Flask, request, Request, Response
 from werkzeug.wrappers import Response as WSGIResponse
 from flask.helpers import make_response
@@ -14,7 +15,9 @@ if os.environ.get('HEROKU'):
     import heroku_config as config
 else:
     import config
-app.config.from_object(config)
+    app.config.from_object(config)
+
+app.config.update(confcollect.from_environ(by_defaults=app.config))
 
 # Serve static files directly to ease setup
 if app.config.get('CLIENT_PATH'):
@@ -29,7 +32,7 @@ if app.config.get('CLIENT_PATH'):
             return f.read()
 
 # Configure database
-if app.config['USE_SHOVE']:
+if app.config.get('USE_SHOVE', False):
     import shove
 
     db = shove.Shove(app.config['DATABASE'])
