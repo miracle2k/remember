@@ -2,6 +2,6 @@ app:
   git: .
   cmd: web
   env:
-    DATABASE: /data/remember.db
-    USE_SHOVE: 
+    DATABASE: /data/remember
+    USE_SHOVE: false
   volumes: [/data]
