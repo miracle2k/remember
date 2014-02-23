@@ -47,6 +47,9 @@ else:
     @contextmanager
     def database():
         dbfilename = app.config['DATABASE']
+        folder = path.dirname(dbfilename)
+        if not path.exists(folder):
+            os.mkdir(folder)
         with FileLock(dbfilename):
             db = shelve.open(dbfilename)
             try:
