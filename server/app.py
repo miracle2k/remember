@@ -31,7 +31,7 @@ app.config.update(confcollect.from_environ(by_defaults=app.config))
 if app.config.get('CLIENT_PATH'):
     from werkzeug.wsgi import SharedDataMiddleware
     app.wsgi_app = SharedDataMiddleware(app.wsgi_app, {
-        '/': config.CLIENT_PATH
+        '/': app.config['CLIENT_PATH']
     })
 
     @app.route('/', methods=['GET'])
