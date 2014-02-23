@@ -11,11 +11,16 @@ from flask.helpers import make_response
 # Setup Flask app
 app = Flask(__name__)
 
-if os.environ.get('HEROKU'):
-    import heroku_config as config
-else:
+try:
     import config
+except ImportError:
+    pass
+else:
     app.config.from_object(config)
+
+if os.environ.get('HEROKU'):
+    import heroku_config
+    app.config.from_object(heroku_config)
 
 app.config.update(confcollect.from_environ(by_defaults=app.config))
 
