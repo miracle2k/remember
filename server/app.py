@@ -11,8 +11,12 @@ from flask.helpers import make_response
 # Setup Flask app
 app = Flask(__name__)
 
-app.config.setdefault(
-    'CLIENT_PATH', path.join(path.dirname(__file__), '..', 'client'))
+app.config.update({
+    'DATABASE': 'remember',
+    'USE_SHOVE': False,
+    'CLIENT_PATH': path.join(path.dirname(__file__), '..', 'client'),
+    'AUTH': {}
+})
 
 try:
     import config
@@ -56,7 +60,7 @@ else:
     def database():
         dbfilename = app.config['DATABASE']
         folder = path.dirname(dbfilename)
-        if not path.exists(folder):
+        if folder and not path.exists(folder):
             os.mkdir(folder)
         with FileLock(dbfilename):
             db = shelve.open(dbfilename)
