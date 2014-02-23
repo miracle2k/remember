@@ -1,0 +1,7 @@
+app:
+  git: .
+  cmd: web
+  env:
+    DATABASE: /data/remember.db
+    USE_SHOVE: 
+  volumes: [/data]

@@ -11,6 +11,9 @@ from flask.helpers import make_response
 # Setup Flask app
 app = Flask(__name__)
 
+app.config.setdefault(
+    'CLIENT_PATH', path.join(path.dirname(__file__), '..', 'client'))
+
 try:
     import config
 except ImportError:
