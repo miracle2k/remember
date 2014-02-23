@@ -49,3 +49,4 @@ Put app in Heroku mode:
 Support gem packages (sass compiler) on Heroku::
 
     $ heroku plugins:install https://github.com/heroku/heroku-buildpacks
+    $ heroku buildpacks:set https://github.com/localmed/heroku-buildpack-python-extras.git
