@@ -77,7 +77,9 @@ def requires_auth(wrapped_app):
         request = Request(environ)
         auth = request.authorization
         users = app.config.get('AUTH', None)
-        if not users is None and (
+        # I prefer only an explicit AUTH=None disable auth, but
+        # for that, confcollect would need to support specs.
+        if users and (
                not auth or not users.get(auth.username, False)
                     == auth.password):
             return WSGIResponse(
