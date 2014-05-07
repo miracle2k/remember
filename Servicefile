@@ -5,4 +5,4 @@ app:
     BUILDPACK_URL: https://github.com/localmed/heroku-buildpack-python-extras.git
     DATABASE: /data/remember
     USE_SHOVE: false
-  volumes: [/data]
+  volumes: {data: /data}
