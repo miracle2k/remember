@@ -23,6 +23,59 @@ Remember.MomentDateTransform = DS.Transform.extend({
   }
 });
 
+
+// 
+Remember.GroupedThings = Ember.ArrayProxy.extend({
+  init: function(modelToStartWith) {
+    this.set('content', Ember.A());
+    // this.content stores the actual model we expose, where the
+    // groups are in a array, sorted. This is a registry giving us
+    // direct access to a particular group's array.
+    this.itemsByGroup = {};  
+
+    modelToStartWith.addArrayObserver(this, {      
+      willChange: function(array, offset, removeCount, addCount) {},
+      didChange: function(array, offset, removeCount, addCount) {
+        if (addCount > 0)
+          this.add(array.slice(offset, offset + addCount))
+      }
+    });
+  },
+
+  // Sort multiple new things into the groups
+  add : function(things) {
+    var this$ = this;
+
+    // Group all passed things by day    
+    things.forEach(function(thing) {
+      var groupKey = thing.get('date').clone().hours(0).minutes(0).seconds(0);
+
+      // Create data structure for new groups
+      if (!this$.itemsByGroup[groupKey]) {
+        var newArray = Ember.A();
+        this$.itemsByGroup[groupKey] = newArray;
+        this$.get('content').pushObject({'date': groupKey, 'year': groupKey.year(), 'items': newArray});
+      }
+
+      this$.itemsByGroup[groupKey].pushObject(thing);
+    });
+
+    this.set('arrangedContent', this.get('content'));
+
+    // Make sure the structure is still sorted by group date
+    // var sorted = this.get('content').sort(function(a, b) { 
+    //   return b.date.valueOf() - a.date.valueOf();
+    // });  
+    // this.replaceContent(0, sorted.get('length'), sorted);
+  },
+
+  // Remove an object from all groups where it appears
+  remove : function() {
+    // XXX
+  }
+});
+
+
 // Extensions
 
 Remember.EditThingView = Ember.TextArea.extend({
@@ -64,16 +117,22 @@ Ember.Handlebars.registerBoundHelper('formatDate', function(date, format) {
 
 Remember.ThingsRoute = Ember.Route.extend({
   model: function() {
-    return this.store.find('thing');
+    return new Remember.GroupedThings(this.store.find('thing'));
   },
 });
 
+
+/**
+ * Control the whole view of multiple things; mainly the "add new" form.
+ */
 
 Remember.Showdown = new Showdown.converter();
 
 Remember.ThingsController = Ember.ArrayController.extend({
   tooltipVisible: false,
   newThing: "",
+  sortProperties: ['year'],
+  sortAscending: false,
 
   actions : {
     createThing: function() {
@@ -97,24 +156,13 @@ Remember.ThingsController = Ember.ArrayController.extend({
       var show = function(){ self.set('tooltipVisible', true); };
       this.tooltipTimeout = _.delay(show, 1000);
     }
-  },
-  
-  groupedByDay : function() {
-    var grouped =_.groupBy(this.get('model').toArray(), function(thing) {
-      return thing.get('date').clone().hours(0).minutes(0).seconds(0); });    
-
-    // Supposedly Ember's #each can iterate objects, but I cannot get it to work.
-    // In any case, the order of an object is undefined, so this wouldn't be 
-    // right anyway.
-    var result = [];
-    _.each(grouped, function(things, groupKey) {
-      result.push({'date': groupKey, 'items': things.reverse()});
-    });
-    var sorted = _.sortBy(result, function(v) { return new Date(v.date); });  
-    return sorted.reverse();
-  }.property('@each.date')
+  }
 })
 
+
+/**
+ * Control an individual "thing" item (edit, delete etc).
+ */
 
 Remember.ThingController = Ember.ObjectController.extend({
   isEditing: false,
