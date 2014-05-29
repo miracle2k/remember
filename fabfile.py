@@ -33,6 +33,4 @@ def push():
     local('cd client && sass --update css-src:stylesheets')
     put('client/stylesheets/', '%s/client/' % env.target_path)
 
-def stylesheet():
-    put('server/test.db', '/srv/remember/data/')
 

@@ -20,7 +20,8 @@
 
           <div id='things'>
             <ul>
-              {{#each groupedByDay}}
+              <!-- no idea why i need to access model.content explicitly. It should work without either of those, or wich just one of either of them.-->
+              {{#each model.arrangedContent }}
                 <div class="group">
                   <div class="group-text">{{ formatDate date 'YYYY-MM-DD' }}</div>
                   <ul>
